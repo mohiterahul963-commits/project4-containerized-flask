@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="description"
+        content="Containerized Flask Application deployed on AWS ECS Fargate using Docker and Amazon ECR.">
+
+  <title>Containerized Flask Application | AWS ECS Fargate</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+    }
+
+    :root {
+      --bg: #07111f;
+      --bg-secondary: #0d1b2d;
+      --card: rgba(18, 34, 55, 0.75);
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #f8fafc;
+      --muted: #a8b5c7;
+      --primary: #60a5fa;
+      --primary-dark: #2563eb;
+      --success: #22c55e;
+      --cyan: #22d3ee;
+      --purple: #a78bfa;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.18), transparent 30%),
+        radial-gradient(circle at 90% 20%, rgba(34, 211, 238, 0.12), transparent 25%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1120px, 92%);
+      margin: auto;
+    }
+
+    /* NAVBAR */
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(7, 17, 31, 0.88);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .menu-btn {
+      display: none;
+      border: 0;
+      background: transparent;
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    /* HERO */
+
+    .hero {
+      padding: 105px 0 85px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 15px;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      border-radius: 50px;
+      background: rgba(34, 197, 94, 0.08);
+      color: #86efac;
+      font-size: 13px;
+      margin-bottom: 25px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 12px var(--success);
+    }
+
+    .hero h1 {
+      max-width: 900px;
+      margin: auto;
+      font-size: clamp(40px, 7vw, 76px);
+      line-height: 1.05;
+      letter-spacing: -3px;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--primary), var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      max-width: 700px;
+      margin: 25px auto 35px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 13px 22px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .btn-primary {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    /* SECTIONS */
+
+    section {
+      padding: 75px 0;
+    }
+
+    .section-heading {
+      text-align: center;
+      margin-bottom: 45px;
+    }
+
+    .section-heading h2 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+    }
+
+    /* CARDS */
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 25px;
+      backdrop-filter: blur(12px);
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+
+    .tech-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      margin-bottom: 18px;
+      background: rgba(96, 165, 250, 0.12);
+      color: var(--primary);
+      font-size: 15px;
+    }
+
+    .card h3 {
+      margin-bottom: 8px;
+      font-size: 19px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* ARCHITECTURE */
+
+    .architecture {
+      background: rgba(255, 255, 255, 0.025);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .architecture-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .architecture-box {
+      min-width: 150px;
+      padding: 22px 18px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+    }
+
+    .architecture-box strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .architecture-box small {
+      color: var(--muted);
+    }
+
+    .arrow {
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    /* PROJECT INFO */
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .info-card h3 {
+      margin-bottom: 20px;
+      font-size: 21px;
+    }
+
+    .info-list {
+      list-style: none;
+    }
+
+    .info-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .info-list li:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      color: var(--muted);
+    }
+
+    .value {
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .green {
+      color: #4ade80;
+    }
+
+    /* ENVIRONMENT */
+
+    .env-box {
+      background: #020817;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      padding: 12px 17px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .terminal-body {
+      padding: 25px;
+      overflow-x: auto;
+    }
+
+    pre {
+      color: #cbd5e1;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .command {
+      color: #60a5fa;
+    }
+
+    .string {
+      color: #86efac;
+    }
+
+    /* FEATURES */
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .feature {
+      padding: 25px;
+      border-left: 3px solid var(--primary);
+      background: rgba(255, 255, 255, 0.035);
+      border-radius: 10px;
+    }
+
+    .feature h3 {
+      margin-bottom: 8px;
+    }
+
+    .feature p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* DEPLOYMENT */
+
+    .deployment {
+      text-align: center;
+      padding: 55px 20px;
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      background: rgba(34, 197, 94, 0.045);
+      border-radius: 18px;
+    }
+
+    .deployment h2 {
+      margin-bottom: 10px;
+    }
+
+    .deployment p {
+      color: var(--muted);
+      margin-bottom: 25px;
+    }
+
+    /* FOOTER */
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 35px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    footer strong {
+      color: white;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background: #07111f;
+        flex-direction: column;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .menu-btn {
+        display: block;
+      }
+
+      .hero {
+        padding: 75px 0;
+      }
+
+      .hero h1 {
+        letter-spacing: -1.5px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .grid,
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .architecture-flow {
+        flex-direction: column;
+      }
+
+      .arrow {
+        transform: rotate(90deg);
+      }
+
+      .info-list li {
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .value {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+
+  <header>
+    <div class="container">
+      <nav>
+        <a href="#home" class="logo">
+          Rahul<span>Cloud</span>
+        </a>
+
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#technology">Technology</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+          <li><a href="#environment">Environment</a></li>
+          <li><a href="#deployment">Deployment</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+
+  <!-- HERO -->
+
+  <main id="home">
+
+    <section class="hero">
+      <div class="container">
+
+        <div class="badge">
+          <span class="status-dot"></span>
+          Application is Healthy
+        </div>
+
+        <h1>
+          Containerized
+          <span>Flask Application</span>
+        </h1>
+
+        <p>
+          A Python Flask application packaged with Docker,
+          stored in Amazon ECR, and deployed as a scalable
+          container workload using AWS ECS Fargate.
+        </p>
+
+        <div class="buttons">
+          <a href="#architecture" class="btn btn-primary">
+            View Architecture
+          </a>
+
+          <a href="#technology" class="btn btn-secondary">
+            Explore Technology
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- TECHNOLOGY STACK -->
+
+    <section id="technology">
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Technology Stack</h2>
+          <p>Technologies used to build and deploy this project.</p>
+        </div>
+
+        <div class="grid">
+
+          <div class="card">
+            <div class="tech-icon">PY</div>
+            <h3>Flask</h3>
+            <p>
+              Lightweight Python web framework used to
+              build the application and expose the web service.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="tech-icon">DO</div>
+            <h3>Docker</h3>
+            <p>
+              Packages the Flask application and its
+              dependencies into a portable container image.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="tech-icon">ECR</div>
+            <h3>Amazon ECR</h3>
+            <p>
+              AWS container registry used to securely store
+              and manage the Docker image.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="tech-icon">ECS</div>
+            <h3>ECS Fargate</h3>
+            <p>
+              Serverless container platform used to run
+              the Flask application without managing servers.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ARCHITECTURE -->
+
+    <section id="architecture" class="architecture">
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Project Architecture</h2>
+          <p>Application deployment flow from source code to running container.</p>
+        </div>
+
+        <div class="architecture-flow">
+
+          <div class="architecture-box">
+            <strong>Flask App</strong>
+            <small>Python Application</small>
+          </div>
+
+          <div class="arrow">→</div>
+
+          <div class="architecture-box">
+            <strong>Docker</strong>
+            <small>Container Image</small>
+          </div>
+
+          <div class="arrow">→</div>
+
+          <div class="architecture-box">
+            <strong>Amazon ECR</strong>
+            <small>Image Registry</small>
+          </div>
+
+          <div class="arrow">→</div>
+
+          <div class="architecture-box">
+            <strong>ECS Fargate</strong>
+            <small>Container Runtime</small>
+          </div>
+
+          <div class="arrow">→</div>
+
+          <div class="architecture-box">
+            <strong>Internet</strong>
+            <small>Application Access</small>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- PROJECT INFORMATION -->
+
+    <section>
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Project Information</h2>
+          <p>Current AWS deployment configuration.</p>
+        </div>
+
+        <div class="info-grid">
+
+          <div class="info-card">
+            <h3>Application Details</h3>
+
+            <ul class="info-list">
+
+              <li>
+                <span class="label">Application</span>
+                <span class="value">Flask</span>
+              </li>
+
+              <li>
+                <span class="label">Container</span>
+                <span class="value">Docker</span>
+              </li>
+
+              <li>
+                <span class="label">Container Port</span>
+                <span class="value">5000</span>
+              </li>
+
+              <li>
+                <span class="label">Protocol</span>
+                <span class="value">HTTP / TCP</span>
+              </li>
+
+              <li>
+                <span class="label">Environment</span>
+                <span class="value">Production</span>
+              </li>
+
+            </ul>
+          </div>
+
+
+          <div class="info-card">
+            <h3>AWS Infrastructure</h3>
+
+            <ul class="info-list">
+
+              <li>
+                <span class="label">Region</span>
+                <span class="value">ap-south-1</span>
+              </li>
+
+              <li>
+                <span class="label">Compute</span>
+                <span class="value">AWS Fargate</span>
+              </li>
+
+              <li>
+                <span class="label">Orchestration</span>
+                <span class="value">Amazon ECS</span>
+              </li>
+
+              <li>
+                <span class="label">Image Registry</span>
+                <span class="value">Amazon ECR</span>
+              </li>
+
+              <li>
+                <span class="label">Deployment</span>
+                <span class="value green">Success</span>
+              </li>
+
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ENVIRONMENT VARIABLES -->
+
+    <section id="environment">
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Environment Configuration</h2>
+          <p>Application configuration passed to the container.</p>
+        </div>
+
+        <div class="env-box">
+
+          <div class="terminal-header">
+            container-environment.env
+          </div>
+
+          <div class="terminal-body">
+
+<pre><span class="command">APP_ENV</span>=<span class="string">production</span>
+<span class="command">APP_NAME</span>=<span class="string">Containerized Flask Application</span></pre>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- FEATURES -->
+
+    <section>
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Key Features</h2>
+          <p>What this project demonstrates.</p>
+        </div>
+
+        <div class="feature-grid">
+
+          <div class="feature">
+            <h3>Containerized Application</h3>
+            <p>
+              The Flask application runs inside an isolated
+              Docker container with its required dependencies.
+            </p>
+          </div>
+
+          <div class="feature">
+            <h3>Private Image Registry</h3>
+            <p>
+              The Docker image is stored in Amazon ECR
+              before being deployed to ECS.
+            </p>
+          </div>
+
+          <div class="feature">
+            <h3>Serverless Containers</h3>
+            <p>
+              ECS Fargate runs the container without requiring
+              manual EC2 server management.
+            </p>
+          </div>
+
+          <div class="feature">
+            <h3>Scalable Architecture</h3>
+            <p>
+              ECS services can maintain the desired number
+              of running application tasks.
+            </p>
+          </div>
+
+          <div class="feature">
+            <h3>Environment Configuration</h3>
+            <p>
+              Application settings are separated from the
+              application code using environment variables.
+            </p>
+          </div>
+
+          <div class="feature">
+            <h3>AWS Cloud Deployment</h3>
+            <p>
+              The application is deployed and accessible
+              through AWS infrastructure in the Mumbai region.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- DEPLOYMENT STATUS -->
+
+    <section id="deployment">
+      <div class="container">
+
+        <div class="deployment">
+
+          <div class="badge">
+            <span class="status-dot"></span>
+            Deployment Successful
+          </div>
+
+          <h2>Application is Healthy!</h2>
+
+          <p>
+            The containerized Flask application is currently
+            running successfully on Amazon ECS Fargate.
+          </p>
+
+          <a
+            href="http://13.232.250.31:5000"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-primary">
+            Open Live Application ↗
+          </a>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- FOOTER -->
+
+  <footer>
+    <div class="container">
+
+      <p>
+        Containerized Flask Application
+        <br>
+        Built and deployed on AWS ECS Fargate
+      </p>
+
+      <p style="margin-top: 10px;">
+        Created by <strong>Rahul Mohite</strong>
+      </p>
+
+      <p style="margin-top: 8px; font-size: 12px;">
+        © <span id="year"></span> Rahul Mohite. All rights reserved.
+      </p>
+
+    </div>
+  </footer>
+
+
+  <!-- JAVASCRIPT -->
+
+  <script>
+    function toggleMenu() {
+      const nav = document.getElementById("navLinks");
+      nav.classList.toggle("active");
+    }
+
+    document.querySelectorAll(".nav-links a").forEach(function(link) {
+      link.addEventListener("click", function() {
+        document.getElementById("navLinks").classList.remove("active");
+      });
+    });
+
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>
